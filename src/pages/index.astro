@@ -1,0 +1,27 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movie Shelf</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="bar"><h1>Movie Shelf</h1><div id="auth"></div></div>
+      <form class="search" id="f">
+        <input id="q" placeholder="Search a movie" autocomplete="off" aria-label="Search a movie" />
+        <button class="primary">Search</button>
+      </form>
+      <nav>
+        <button data-t="search" class="active">Search</button>
+        <button data-t="watchlist">Watchlist</button>
+        <button data-t="watched">Watched</button>
+      </nav>
+    </header>
+    <main id="m"></main>
+    <script is:inline src="/app.js"></script>
+  </body>
+</html>

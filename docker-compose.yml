@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4321:4321"
+    env_file: .env   # DATABASE_URL, BETTER_AUTH_*, GOOGLE_*, TMDB_API_KEY
+    restart: unless-stopped
