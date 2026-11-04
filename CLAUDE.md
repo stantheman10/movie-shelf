@@ -2,7 +2,7 @@
 
 Movie Shelf: browse movies and streaming availability (TMDB); signed-in users keep a Watchlist / Watched library.
 
-Stack: Astro 7 (`output: "server"`), Neon Postgres via Drizzle ORM (`neon-http`), Better Auth (Google sign-in), TMDB v3 API. Deployed to Vercel, or as a standalone Node server in Docker.
+Stack: Astro 7 (`output: "server"`), Neon Postgres via Drizzle ORM (`neon-http`), Better Auth (Google sign-in), TMDB v3 API. Deployed to Render as a Docker web service (standalone Node server). Vercel is still supported by the default adapter.
 
 > Note: `/Users/stanriccardozo/Downloads/AGENTS.md` describes a different project (a CV RAG assistant on TanStack Start). It does not apply here.
 
@@ -13,7 +13,7 @@ npm install
 cp .env.example .env   # fill in every value
 npm run db:push        # sync src/db/schema.ts to the Neon database (drizzle-kit push)
 npm run dev            # http://localhost:4321
-npm run build          # Vercel adapter by default
+npm run build          # Vercel adapter by default (not used on Render)
 npm run preview
 DEPLOY_TARGET=docker npm run build   # standalone Node build -> dist/server/entry.mjs
 ```
@@ -39,7 +39,7 @@ There are no migration files: schema changes are applied with `db:push`.
 - Validate and clamp request input in the route (e.g. title sliced to 300 chars, year to 4).
 - Keep the TMDB API key server-side; the browser only talks to this app's `/api/*` routes.
 - Better Auth's table definitions in `schema.ts` must match what Better Auth expects. Don't rename those columns.
-- Streaming region comes from the `x-vercel-ip-country` header, then `cf-ipcountry`, defaulting to US. `?country=XX` overrides it.
+- Streaming region comes from the `x-vercel-ip-country` header, then `cf-ipcountry`, defaulting to US. On Render neither is sent (unless behind Cloudflare), so it is US unless `?country=XX` is passed.
 - Streaming data is from JustWatch via TMDB. Keep the attribution.
 
 ## Environment variables
@@ -50,5 +50,6 @@ Sign-in only works on the origin in `BETTER_AUTH_URL`. That URL plus `/api/auth/
 
 ## Deployment
 
-- Vercel: the default adapter. Set the same env vars in project settings.
-- Docker: `DEPLOY_TARGET=docker` switches to `@astrojs/node` standalone. The Dockerfile builds with it, runs as the `node` user on port 4321, and health-checks `/api/auth/ok`.
+- **Render (production):** Web Service with the Docker runtime, using the root `Dockerfile` (sets `DEPLOY_TARGET=docker`, builds `@astrojs/node` standalone, runs as the `node` user). Set all env vars in the Render dashboard, set Health Check Path to `/api/auth/ok`, and set `BETTER_AUTH_URL` to the public URL. Render injects `PORT`, which the Node server reads. The Dockerfile's `HEALTHCHECK` is ignored by Render.
+- Run `npm run db:push` from a local machine against the Neon database; Render does not run it.
+- Vercel: still works via the default adapter (build without `DEPLOY_TARGET`), but is not the target.
