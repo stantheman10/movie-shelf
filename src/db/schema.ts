@@ -52,6 +52,7 @@ export const library = pgTable(
   "library",
   {
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    mediaType: text("media_type").notNull().default("movie"), // "movie" | "tv" (TMDB ids overlap)
     movieId: integer("movie_id").notNull(),
     title: text("title").notNull(),
     year: text("year"),
@@ -60,5 +61,5 @@ export const library = pgTable(
     status: text("status").notNull(), // "watchlist" | "watched"
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.movieId] })]
+  (t) => [primaryKey({ columns: [t.userId, t.mediaType, t.movieId] })]
 );

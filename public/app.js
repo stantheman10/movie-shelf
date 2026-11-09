@@ -39,30 +39,31 @@ function renderAuth() {
 }
 
 /* ---------- library ---------- */
-const norm = (m) => ({ id: m.id, title: m.title, year: m.year ?? (m.release_date || "").slice(0, 4), poster: m.poster ?? m.poster_path, overview: m.overview });
+const key = (m) => (m.mediaType || "movie") + ":" + m.id;
+const norm = (m) => ({ id: m.id, mediaType: m.mediaType || "movie", title: m.title, year: m.year ?? (m.release_date || "").slice(0, 4), poster: m.poster ?? m.poster_path, overview: m.overview });
 async function setStatus(m, s) {
   if (!user) { signIn(); return; }
   m = norm(m);
-  const cur = lib[m.id];
+  const k = key(m), cur = lib[k];
   const prev = cur ? { ...cur } : null;
   try {
-    if (cur && cur.status === s) { delete lib[m.id]; render(); await j("/api/library?id=" + m.id, { method: "DELETE" }); }
-    else { lib[m.id] = { ...m, status: s }; render(); await post("/api/library", { movie: m, status: s }); }
+    if (cur && cur.status === s) { delete lib[k]; render(); await j("/api/library?id=" + m.id + "&type=" + m.mediaType, { method: "DELETE" }); }
+    else { lib[k] = { ...m, status: s }; render(); await post("/api/library", { movie: m, status: s }); }
   } catch (e) {
-    if (prev) lib[m.id] = prev; else delete lib[m.id];
+    if (prev) lib[k] = prev; else delete lib[k];
     msg = "Couldn't save: " + e.message; render();
   }
 }
 const btns = (m) => {
-  const s = lib[m.id]?.status;
+  const s = lib[key(m)]?.status;
   return `<div class="btns">
-<button class="${s == "watchlist" ? "on" : ""}" data-s="watchlist" data-id="${m.id}">${s == "watchlist" ? "✓ On watchlist" : "+ Watchlist"}</button>
-<button class="${s == "watched" ? "on" : ""}" data-s="watched" data-id="${m.id}">${s == "watched" ? "✓ Watched" : "Mark watched"}</button></div>`;
+<button class="${s == "watchlist" ? "on" : ""}" data-s="watchlist" data-id="${m.id}" data-type="${m.mediaType || "movie"}">${s == "watchlist" ? "✓ On watchlist" : "+ Watchlist"}</button>
+<button class="${s == "watched" ? "on" : ""}" data-s="watched" data-id="${m.id}" data-type="${m.mediaType || "movie"}">${s == "watched" ? "✓ Watched" : "Mark watched"}</button></div>`;
 };
 
 /* ---------- views ---------- */
 const poster = (p) => (p ? `<img src="${IMG}w342${p}" alt="" loading="lazy">` : `<div class="ph"></div>`);
-const row = (x) => `<div class="row" data-open="${x.id}">${poster(x.poster ?? x.poster_path)}<div><h3>${esc(x.title)}</h3><div class="mute">${esc(x.year ?? (x.release_date || "").slice(0, 4))}</div>${x.overview ? `<p class="mute" style="margin:4px 0 0">${esc(x.overview.slice(0, 140))}${x.overview.length > 140 ? "…" : ""}</p>` : ""}${btns(x)}</div></div>`;
+const row = (x) => `<div class="row" data-open="${x.id}" data-type="${x.mediaType || "movie"}">${poster(x.poster ?? x.poster_path)}<div><h3>${esc(x.title)}</h3><div class="mute">${x.mediaType == "tv" ? "TV · " : ""}${esc(x.year ?? (x.release_date || "").slice(0, 4))}</div>${x.overview ? `<p class="mute" style="margin:4px 0 0">${esc(x.overview.slice(0, 140))}${x.overview.length > 140 ? "…" : ""}</p>` : ""}${btns(x)}</div></div>`;
 
 function providersHTML(p) {
   if (!p) return "";
@@ -75,13 +76,15 @@ ${p.link ? `<p class="mute"><a href="${esc(p.link)}" target="_blank" rel="noopen
 }
 function detailHTML() {
   const d = detail, cast = (d.credits?.cast || []).slice(0, 12);
-  const dir = (d.credits?.crew || []).filter((c) => c.job == "Director").map((c) => c.name).join(", ");
+  const dir = d.mediaType == "tv"
+    ? (d.created_by || []).map((c) => c.name).join(", ")
+    : (d.credits?.crew || []).filter((c) => c.job == "Director").map((c) => c.name).join(", ");
   const tr = (d.videos?.results || []).find((v) => v.site == "YouTube" && v.type == "Trailer");
   return `<div class="detail"><div class="top">${poster(d.poster_path)}<div><h2>${esc(d.title)}</h2>
-<div class="mute">${esc((d.release_date || "").slice(0, 4))}${d.runtime ? " · " + d.runtime + " min" : ""}${d.vote_average ? " · ★ " + d.vote_average.toFixed(1) : ""}</div>
+<div class="mute">${esc((d.release_date || "").slice(0, 4))}${d.mediaType == "tv" ? " · TV" + (d.number_of_seasons ? " · " + d.number_of_seasons + (d.number_of_seasons == 1 ? " season" : " seasons") : "") : ""}${d.runtime ? " · " + d.runtime + " min" : ""}${d.vote_average ? " · ★ " + d.vote_average.toFixed(1) : ""}</div>
 <div class="chips">${(d.genres || []).map((g) => `<span class="chip">${esc(g.name)}</span>`).join("")}</div>${btns(d)}</div></div>
 ${d.tagline ? `<p class="mute"><i>${esc(d.tagline)}</i></p>` : ""}<p>${esc(d.overview)}</p>
-${dir ? `<p><b>Director:</b> ${esc(dir)}</p>` : ""}
+${dir ? `<p><b>${d.mediaType == "tv" ? "Created by" : "Director"}:</b> ${esc(dir)}</p>` : ""}
 ${providersHTML(d.providers)}
 <div class="cast">${cast.map((c) => `<div>${c.profile_path ? `<img src="${IMG}w185${c.profile_path}" alt="">` : `<div class="ph" style="border-radius:50%;width:76px;height:76px"></div>`}<b>${esc(c.name)}</b><br><span class="mute" style="font-size:12px">${esc(c.character)}</span></div>`).join("")}</div>
 ${tr ? `<p><a href="https://www.youtube.com/watch?v=${tr.key}" target="_blank" rel="noopener">Watch trailer</a></p>` : ""}
@@ -95,13 +98,13 @@ function render() {
   else if (!user) h += `<p class="mute">Sign in with Google to keep a watchlist and a watched list.</p>`;
   else {
     const items = Object.values(lib).filter((x) => x.status == tab);
-    h += items.length ? items.map(row).join("") : `<p class="mute">Nothing here yet. Search for a movie and add it.</p>`;
+    h += items.length ? items.map(row).join("") : `<p class="mute">Nothing here yet. Search for a movie or show and add it.</p>`;
   }
   $("#m").innerHTML = h;
 }
-async function openMovie(id) {
+async function openMovie(id, type = "movie") {
   const my = ++reqId;
-  try { const d = await jRetry("/api/movie/" + id, () => my !== reqId, (n) => { msg = "Still loading… (retry " + n + ")"; render(); }); if (d) { detail = d; msg = ""; } else return; }
+  try { const d = await jRetry("/api/movie/" + id + "?type=" + type, () => my !== reqId, (n) => { msg = "Still loading… (retry " + n + ")"; render(); }); if (d) { detail = d; msg = ""; } else return; }
   catch (e) { msg = "Error: " + e.message; }
   render(); window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -124,16 +127,16 @@ document.addEventListener("click", (e) => {
   if (e.target.id == "close") { detail = null; render(); return; }
   const b = e.target.closest("[data-s]");
   if (b) {
-    const id = +b.dataset.id;
-    const m = (detail && detail.id == id ? detail : null) || results.find((x) => x.id == id) || lib[id];
+    const id = +b.dataset.id, k = (b.dataset.type || "movie") + ":" + id;
+    const m = (detail && key(detail) == k ? detail : null) || results.find((x) => key(x) == k) || lib[k];
     if (m) setStatus(m, b.dataset.s);
     return;
   }
-  const r = e.target.closest("[data-open]"); if (r) openMovie(r.dataset.open);
+  const r = e.target.closest("[data-open]"); if (r) openMovie(r.dataset.open, r.dataset.type);
 });
 
 (async function init() {
   try { user = (await j("/api/me")).user; } catch {}
-  if (user) { try { (await j("/api/library")).forEach((x) => (lib[x.id] = x)); } catch {} }
+  if (user) { try { (await j("/api/library")).forEach((x) => (lib[key(x)] = x)); } catch {} }
   renderAuth(); render();
 })();
