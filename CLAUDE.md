@@ -29,6 +29,7 @@ There are no migration files: schema changes are applied with `db:push`.
 - `src/lib/auth.ts`: Better Auth config and `getUserId(request)`, which returns the user id or null.
 - `src/lib/tmdb.ts`: `tmdb(path, params, ttlSeconds)` fetch helper (retries network errors, caches successes in memory, default 5 min; details use 30 min) and the `json(data, status)` response helper.
 - `src/middleware.ts` + `src/lib/api-limit.ts` + `src/lib/rate-limit.ts`: in-memory rate limit on `/api/search` and `/api/movie/*` (90 req/min per IP, 900/min global backstop; 429 + `Retry-After`). `src/lib/cache.ts` is the TTL cache. State is per process, so it assumes a single instance; move to a shared store (e.g. Redis) before scaling out.
+- Smart search (signed-in only): `src/pages/api/smart-search.ts` -> `src/lib/smart-search.ts` (24h in-memory cache, strict title+year match against TMDB, drops unmatched LLM titles) -> `src/lib/llm.ts` (NVIDIA OpenAI-compatible chat API, 30s timeout, thinking disabled). On any LLM failure the route falls back to `/search/multi` and returns `fallback: true`. It has its own tighter limiter in `src/middleware.ts` (10/min per IP, 30/min global) because the free NVIDIA tier (~40 req/min) is shared. `scripts/eval-smart-search.ts` is a dev-only quality check (`npx tsx --env-file=.env scripts/eval-smart-search.ts`).
 - `src/lib/env.ts`: `env(key)` reads `import.meta.env` first, then `process.env`. Use it instead of reading either directly.
 - `src/db/schema.ts`: Better Auth tables (`user`, `session`, `account`, `verification`) plus the app table `library`.
 - `src/db/index.ts`: the Drizzle client.
@@ -46,7 +47,7 @@ There are no migration files: schema changes are applied with `db:push`.
 
 ## Environment variables
 
-`DATABASE_URL` (Neon pooled string), `BETTER_AUTH_SECRET` (32+ chars), `BETTER_AUTH_URL` (public site URL), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TMDB_API_KEY`. See `.env.example`. Never commit `.env` or print its values.
+`DATABASE_URL` (Neon pooled string), `BETTER_AUTH_SECRET` (32+ chars), `BETTER_AUTH_URL` (public site URL), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TMDB_API_KEY`, `NVIDIA_API_KEY` (Smart search), optional `NVIDIA_MODEL` (default `nvidia/nemotron-3-ultra-550b-a55b`). See `.env.example`. Never commit `.env` or print its values.
 
 Sign-in only works on the origin in `BETTER_AUTH_URL`. That URL plus `/api/auth/callback/google` must be registered as a Google redirect URI, so preview deployments won't sign in by default.
 

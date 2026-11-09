@@ -35,3 +35,12 @@ describe("createApiLimiter", () => {
     expect(limit(req("4.4.4.4"), "/api/search")?.status).toBe(429);
   });
 });
+
+describe("createApiLimiter with a custom guard", () => {
+  it("guards only the given path", () => {
+    const limit = createApiLimiter({ perIp: 1, global: 5, windowMs: 60_000, now: () => 0, guard: (p) => p === "/api/smart-search" });
+    expect(limit(req("1.1.1.1"), "/api/search")).toBeNull();
+    expect(limit(req("1.1.1.1"), "/api/smart-search")).toBeNull();
+    expect(limit(req("1.1.1.1"), "/api/smart-search")?.status).toBe(429);
+  });
+});

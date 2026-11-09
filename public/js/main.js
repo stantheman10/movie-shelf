@@ -25,11 +25,18 @@ $("#f").onsubmit = (e) => {
   const q = $("#q").value.trim();
   if (q) runSearch(q);
 };
+$("#smart").onchange = (e) => {
+  if (e.target.checked && !state.user) {
+    e.target.checked = false; state.msg = "Sign in with Google to use Smart search."; render(); return;
+  }
+  state.smart = e.target.checked;
+  $("#q").placeholder = state.smart ? "Describe what you want to watch" : "Search a movie or TV show";
+};
 // Search as you type, once the user pauses.
 $("#q").addEventListener("input", () => {
   clearTimeout(timer);
   const q = $("#q").value.trim();
-  if (q.length < 2 || q === state.query) return;
+  if (state.smart || q.length < 2 || q === state.query) return; // smart search runs on submit only (shared quota)
   timer = setTimeout(() => runSearch(q), 450);
 });
 document.addEventListener("click", (e) => {

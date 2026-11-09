@@ -9,7 +9,7 @@ const btns = (m) => {
 <button class="${s == "watched" ? "on" : ""}" data-s="watched" data-id="${m.id}" data-type="${t}">${s == "watched" ? "✓ Watched" : "Mark watched"}</button></div>`;
 };
 const poster = (p) => (p ? `<img src="${IMG}w342${p}" alt="" loading="lazy">` : `<div class="ph"></div>`);
-const row = (x) => `<div class="row" data-open="${x.id}" data-type="${x.mediaType || "movie"}">${poster(x.poster ?? x.poster_path)}<div><h3>${esc(x.title)}</h3><div class="mute">${x.mediaType == "tv" ? "TV · " : ""}${esc(x.year ?? (x.release_date || "").slice(0, 4))}</div>${x.overview ? `<p class="mute" style="margin:4px 0 0">${esc(x.overview.slice(0, 140))}${x.overview.length > 140 ? "…" : ""}</p>` : ""}${btns(x)}</div></div>`;
+const row = (x) => `<div class="row" data-open="${x.id}" data-type="${x.mediaType || "movie"}">${poster(x.poster ?? x.poster_path)}<div><h3>${esc(x.title)}</h3><div class="mute">${x.mediaType == "tv" ? "TV · " : ""}${esc(x.year ?? (x.release_date || "").slice(0, 4))}</div>${x.reason ? `<p style="margin:4px 0 0"><i>${esc(x.reason)}</i></p>` : ""}${x.overview ? `<p class="mute" style="margin:4px 0 0">${esc(x.overview.slice(0, 140))}${x.overview.length > 140 ? "…" : ""}</p>` : ""}${btns(x)}</div></div>`;
 
 function providersHTML(p) {
   if (!p) return "";

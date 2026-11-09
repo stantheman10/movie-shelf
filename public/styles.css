@@ -7,6 +7,7 @@ header{padding:20px 16px 8px;max-width:760px;margin:auto}
 h1{font:700 28px Georgia,"Iowan Old Style",serif;margin:0;letter-spacing:-.3px}
 main{max-width:760px;margin:auto;padding:0 16px 60px}
 .search{display:flex;gap:8px}
+.smart{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:.9rem;cursor:pointer}
 input{flex:1;min-width:0;padding:12px 14px;font:inherit;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink)}
 button{font:inherit;cursor:pointer;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 14px}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
