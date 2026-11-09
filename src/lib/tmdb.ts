@@ -1,9 +1,9 @@
 import { env } from "./env";
+import { TtlCache } from "./cache";
 
-export async function tmdb(path: string, params: Record<string, string> = {}) {
-  const u = new URL("https://api.themoviedb.org/3" + path);
-  u.searchParams.set("api_key", env("TMDB_API_KEY"));
-  for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+const cache = new TtlCache<unknown>(500);
+
+async function fetchTmdb(u: URL) {
   // TMDB intermittently resets connections (ECONNRESET); retry network errors only.
   let r: Response | undefined;
   for (let attempt = 0; attempt < 6; attempt++) {
@@ -18,6 +18,16 @@ export async function tmdb(path: string, params: Record<string, string> = {}) {
   if (!r) throw new Error("TMDB unreachable");
   if (!r.ok) throw new Error(r.status === 401 ? "Invalid TMDB API key" : `TMDB error ${r.status}`);
   return r.json();
+}
+
+/** Calls TMDB. Successful responses are cached in memory for `ttlSeconds` (0 disables caching). */
+export async function tmdb(path: string, params: Record<string, string> = {}, ttlSeconds = 300) {
+  const u = new URL("https://api.themoviedb.org/3" + path);
+  for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+  const cacheKey = u.pathname + u.search; // built before the API key is added
+  u.searchParams.set("api_key", env("TMDB_API_KEY"));
+  if (ttlSeconds <= 0) return fetchTmdb(u);
+  return cache.wrap(cacheKey, ttlSeconds * 1000, () => fetchTmdb(u));
 }
 
 export const json = (data: unknown, status = 200) =>

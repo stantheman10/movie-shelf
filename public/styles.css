@@ -38,3 +38,6 @@ nav button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .where{border-top:1px solid var(--line);margin-top:12px;padding-top:4px}
 .err{color:#c0392b}
 a{color:var(--accent)}
+
+.more{width:100%;margin-top:4px}
+.more:disabled{opacity:.6;cursor:default}

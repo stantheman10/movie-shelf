@@ -11,8 +11,8 @@ export const GET: APIRoute = async ({ params, request, url }) => {
   if (!/^\d+$/.test(params.id ?? "")) return json({ error: "Bad request" }, 400);
   try {
     const [d, p] = await Promise.all([
-      tmdb(`/${mediaType}/${params.id}`, { append_to_response: "credits,videos" }),
-      tmdb(`/${mediaType}/${params.id}/watch/providers`),
+      tmdb(`/${mediaType}/${params.id}`, { append_to_response: "credits,videos" }, 1800),
+      tmdb(`/${mediaType}/${params.id}/watch/providers`, {}, 1800),
     ]);
     const pr = p.results?.[country];
     const providers = pr

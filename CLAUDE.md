@@ -15,18 +15,20 @@ npm run db:push        # sync src/db/schema.ts to the Neon database (drizzle-kit
 npm run dev            # http://localhost:4321
 npm run build          # Vercel adapter by default (not used on Render)
 npm run preview
+npm test                # vitest (tests/): rate limiter, cache, TMDB helper, search route, client helpers
 DEPLOY_TARGET=docker npm run build   # standalone Node build -> dist/server/entry.mjs
 ```
 
-There is no test runner, linter, or formatter configured. Type-check with `npx astro check` or `npx tsc --noEmit` if needed (neither is a dependency yet).
+There is no linter or formatter configured. Type-check with `npx astro check` or `npx tsc --noEmit` if needed (neither is a dependency yet).
 There are no migration files: schema changes are applied with `db:push`.
 
 ## Layout
 
-- `src/pages/index.astro`: the single page shell; the UI is plain JS/CSS served from `public/` (`app.js`, `styles.css`), not an Astro/React component tree.
-- `src/pages/api/`: API routes (`search`, `library`, `me`, `movie/[id]`, `auth/[...all]` for Better Auth).
+- `src/pages/index.astro`: the single page shell; the UI is plain browser ES modules in `public/js/` (loaded as `type="module"` from `main.js`) plus `public/styles.css`, not an Astro/React component tree. Modules: `state` (shared mutable state), `api` (fetch + retry), `views` (HTML + `render()`), `auth`, `library`, `search` (debounced search + pagination), `util`, `main` (events/init).
+- `src/pages/api/`: API routes (`search` returns `{ results, page, totalPages }`, `library`, `me`, `movie/[id]`, `auth/[...all]` for Better Auth).
 - `src/lib/auth.ts`: Better Auth config and `getUserId(request)`, which returns the user id or null.
-- `src/lib/tmdb.ts`: `tmdb(path, params)` fetch helper and the `json(data, status)` response helper.
+- `src/lib/tmdb.ts`: `tmdb(path, params, ttlSeconds)` fetch helper (retries network errors, caches successes in memory, default 5 min; details use 30 min) and the `json(data, status)` response helper.
+- `src/middleware.ts` + `src/lib/api-limit.ts` + `src/lib/rate-limit.ts`: in-memory rate limit on `/api/search` and `/api/movie/*` (90 req/min per IP, 900/min global backstop; 429 + `Retry-After`). `src/lib/cache.ts` is the TTL cache. State is per process, so it assumes a single instance; move to a shared store (e.g. Redis) before scaling out.
 - `src/lib/env.ts`: `env(key)` reads `import.meta.env` first, then `process.env`. Use it instead of reading either directly.
 - `src/db/schema.ts`: Better Auth tables (`user`, `session`, `account`, `verification`) plus the app table `library`.
 - `src/db/index.ts`: the Drizzle client.

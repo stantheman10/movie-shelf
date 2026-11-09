@@ -34,7 +34,13 @@ Render builds the included `Dockerfile` (it sets `DEPLOY_TARGET=docker`, produci
 Render injects its own `PORT` (default 10000); the Node server reads it, so no port config is needed.
 The free plan spins the service down when idle, so the first request after a pause is slow.
 
+## Tests
+```bash
+npm test
+```
+
 ## Notes
+- `/api/search` and `/api/movie/*` are rate limited per IP (in memory, single instance) and TMDB responses are cached briefly in memory.
 - Streaming region defaults to US. Test another region with `/api/movie/603?country=GB`.
   Render sends no country header; one is only read if you put Cloudflare (`cf-ipcountry`) in front.
 - Sign-in only works on the URL set in `BETTER_AUTH_URL`, so Render preview environments will not
