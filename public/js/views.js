@@ -21,6 +21,17 @@ function grid(items, sig) {
   return `<div class="grid">${items.map((x, i) => tile(x, i >= start, Math.min(i - start, 14) * 45)).join("")}</div>`;
 }
 
+// Titled sections of tiles (home screen). Re-renders with the same sig stay still; a new view animates in.
+function sections(list, sig) {
+  const fresh = sig !== lastSig; lastSig = sig; lastCount = 0;
+  return list.map((s) => `<h2 class="sect">${esc(s.title)}</h2><div class="grid">${s.items.map((x, i) => tile(x, fresh, Math.min(i, 14) * 45)).join("")}</div>`).join("");
+}
+function homeHTML() {
+  const t = state.trending;
+  if (!t) return state.trendingFailed ? "" : `<p class="mute">Loading trending…</p>`;
+  return sections([{ title: "Trending movies", items: t.movies }, { title: "Trending TV shows", items: t.tv }], "home");
+}
+
 function providersHTML(p) {
   if (!p) return "";
   if (p.none) return `<div class="where"><p class="mute">No streaming info for ${esc(p.country)}.</p></div>`;
@@ -52,7 +63,9 @@ export function render() {
   btnsEls.forEach((b) => b.classList.toggle("active", b.dataset.t == tab));
   document.querySelector("nav").style.setProperty("--i", Math.max(0, btnsEls.findIndex((b) => b.dataset.t == tab)));
   let h = msg ? `<p class="${/fail|couldn|error|too many/i.test(msg) ? "err" : "mute"}">${esc(msg)}</p>` : "";
-  if (tab == "search") {
+  if (tab == "search" && !state.query) {
+    h += homeHTML();
+  } else if (tab == "search") {
     h += grid(results, "search|" + state.query);
     if (state.page && state.page < state.totalPages)
       h += `<button class="more" id="more"${state.loadingMore ? " disabled" : ""}>${state.loadingMore ? "Loading…" : "Load more"}</button>`;

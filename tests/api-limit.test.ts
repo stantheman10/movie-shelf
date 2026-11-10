@@ -10,6 +10,13 @@ describe("createApiLimiter", () => {
     for (let i = 0; i < 10; i++) expect(limit(req("1.1.1.1"), "/api/library")).toBeNull();
   });
 
+  it("guards the trending route too", () => {
+    const limit = make();
+    limit(req("1.1.1.1"), "/api/trending");
+    limit(req("1.1.1.1"), "/api/trending");
+    expect(limit(req("1.1.1.1"), "/api/trending")?.status).toBe(429);
+  });
+
   it("returns 429 with Retry-After once an IP exceeds its limit", async () => {
     const limit = make();
     expect(limit(req("1.1.1.1"), "/api/search")).toBeNull();

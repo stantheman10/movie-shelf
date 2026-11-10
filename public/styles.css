@@ -82,3 +82,4 @@ main{min-height:60vh}
 .tile:active{transform:scale(.97)}
 .tile{transition:transform .15s}
 @media (prefers-reduced-motion:reduce){.tile.fresh{opacity:1;animation:none}.modal.enter,.modal.enter .detail,#m>p{animation:none}.nav-ind,.tile,.tile img{transition:none}}
+.sect{font:700 20px/1.2 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;letter-spacing:-.2px;margin:28px 0 14px}.sect:first-child{margin-top:8px}

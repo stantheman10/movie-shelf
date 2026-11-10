@@ -7,7 +7,7 @@ type Options = {
 };
 
 export const SMART_PATH = "/api/smart-search";
-const tmdbRoutes = (pathname: string) => pathname === "/api/search" || pathname.startsWith("/api/movie/");
+const tmdbRoutes = (pathname: string) => pathname === "/api/search" || pathname === "/api/trending" || pathname.startsWith("/api/movie/");
 
 /**
  * Protects the TMDB-backed routes. The global cap is a backstop: client IP headers can be

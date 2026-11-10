@@ -38,6 +38,9 @@ $("#smart").onchange = (e) => {
 $("#q").addEventListener("input", () => {
   clearTimeout(timer);
   const q = $("#q").value.trim();
+  if (!q && state.query) { // emptied the box: back to the home screen
+    state.reqId++; state.query = ""; state.results = []; state.page = 0; state.totalPages = 0; state.msg = ""; state.loadingMore = false; render(); return;
+  }
   if (state.smart || q.length < 2 || q === state.query) return; // smart search runs on submit only (shared quota)
   timer = setTimeout(() => runSearch(q), 450);
 });
@@ -49,14 +52,24 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-s]");
   if (b) {
     const id = +b.dataset.id, k = (b.dataset.type || "movie") + ":" + id;
-    const m = (state.detail && key(state.detail) == k ? state.detail : null) || state.results.find((x) => key(x) == k) || state.lib[k];
+    const pool = [...state.results, ...(state.trending?.movies || []), ...(state.trending?.tv || [])];
+    const m = (state.detail && key(state.detail) == k ? state.detail : null) || pool.find((x) => key(x) == k) || state.lib[k];
     if (m) setStatus(m, b.dataset.s);
     return;
   }
   const r = e.target.closest("[data-open]"); if (r) openMovie(r.dataset.open, r.dataset.type);
 });
 
+async function loadTrending() {
+  let tries = 0; // jRetry loops on 5xx; give up after a few attempts so a TMDB outage doesn't retry forever
+  try { state.trending = await jRetry("/api/trending", () => ++tries > 12); }
+  catch { state.trending = null; }
+  if (!state.trending) state.trendingFailed = true;
+  render();
+}
+
 (async function init() {
+  loadTrending();
   try { state.user = (await j("/api/me")).user; } catch {}
   document.body.classList.toggle("signed-in", !!state.user);
   if (state.user) { try { (await j("/api/library")).forEach((x) => (state.lib[key(x)] = x)); } catch {} }
