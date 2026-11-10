@@ -9,10 +9,28 @@ const btns = (m) => {
 <button class="${s == "watched" ? "on" : ""}" data-s="watched" data-id="${m.id}" data-type="${t}">${s == "watched" ? "✓ Watched" : "Mark watched"}</button></div>`;
 };
 const poster = (p) => (p ? `<img src="${IMG}w342${p}" alt="" loading="lazy">` : `<div class="ph"></div>`);
-const tile = (x, fresh, d) => {
-  const t = esc(x.title);
-  return `<button type="button" class="tile${fresh ? " fresh" : ""}"${fresh ? ` style="--d:${d}ms"` : ""} data-open="${x.id}" data-type="${x.mediaType || "movie"}" aria-label="${t}">${poster(x.poster ?? x.poster_path)}<span class="tile-title">${t}</span></button>`;
+// Lucide-style icons (24px grid, stroke follows currentColor).
+const ICONS = {
+  watchlist: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`,
+  watched: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
 };
+// Tile markup carries no library state (that is applied by syncTileStatus), so toggling a status never rebuilds the grid.
+const tile = (x, fresh, d) => {
+  const t = esc(x.title), type = x.mediaType || "movie";
+  const act = (s) => `<button type="button" class="tile-act ${s}" data-s="${s}" data-id="${x.id}" data-type="${type}" aria-pressed="false">${ICONS[s]}</button>`;
+  return `<div class="tile${fresh ? " fresh" : ""}"${fresh ? ` style="--d:${d}ms"` : ""}><button type="button" class="tile-open" data-open="${x.id}" data-type="${type}" aria-label="${t}">${poster(x.poster ?? x.poster_path)}<span class="tile-title">${t}</span></button><div class="tile-actions">${act("watchlist")}${act("watched")}</div></div>`;
+};
+const ACT_LABEL = { watchlist: ["Add to watchlist", "Remove from watchlist"], watched: ["Mark as watched", "Remove from watched"] };
+function syncTileStatus() {
+  document.querySelectorAll("#m .tile-act").forEach((b) => {
+    const on = state.lib[(b.dataset.type || "movie") + ":" + b.dataset.id]?.status === b.dataset.s;
+    const label = ACT_LABEL[b.dataset.s][on ? 1 : 0];
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+    b.setAttribute("aria-label", label);
+    b.title = label;
+  });
+}
 // Only tiles that are new to the screen animate in (whole view on tab/query change, just the appended ones on "Load more"); re-renders from status toggles stay still.
 let lastSig = "", lastCount = 0, lastMain = "";
 function grid(items, sig) {
@@ -75,7 +93,9 @@ export function render() {
   }
   // The modal lives in its own container, and the page is only rebuilt when it actually changed, so opening
   // a title doesn't tear down and re-decode every poster behind it (that stalled the open animation).
-  if (h !== lastMain) { $("#m").innerHTML = h; lastMain = h; }
+  const sig = h.replace(/ fresh"/g, '"').replace(/ style="--d:\d+ms"/g, ""); // entrance-animation markup alone doesn't make the page "changed"
+  if (sig !== lastMain) { $("#m").innerHTML = h; lastMain = sig; }
+  syncTileStatus();
   const ov = $("#overlay");
   const old = ov.querySelector(".detail");
   const keep = old ? old.scrollTop : 0;

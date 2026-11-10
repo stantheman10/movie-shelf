@@ -79,10 +79,20 @@ main{min-height:60vh}
 #m>p{animation:fade .3s ease both}
 .modal.enter{animation:fade .2s ease both}
 .modal.enter .detail{animation:pop .3s cubic-bezier(.2,.7,.2,1) both}
-.tile:active{transform:scale(.97)}
-.tile{transition:transform .15s}
-@media (prefers-reduced-motion:reduce){.tile.fresh{opacity:1;animation:none}.modal.enter,.modal.enter .detail,#m>p{animation:none}.nav-ind,.tile,.tile img{transition:none}}
+.tile-open:active{transform:scale(.97)}
+.tile-open{transition:transform .15s}
+@media (prefers-reduced-motion:reduce){.tile.fresh{opacity:1;animation:none}.modal.enter,.modal.enter .detail,#m>p{animation:none}.nav-ind,.tile-open,.tile img,.tile-act{transition:none}}
 .sect{font:700 20px/1.2 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;letter-spacing:-.2px;margin:28px 0 14px}.sect:first-child{margin-top:8px}
 .modal .detail{overscroll-behavior:contain}.modal .detail:focus{outline:none}
 .grabber{display:none}
 @media (pointer:coarse){.grabber{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:-8px auto 14px}}
+.tile{position:relative}
+.tile-open{display:flex;flex-direction:column;gap:10px;width:100%;padding:0;border:0;background:none;text-align:left;color:inherit;font:inherit;min-width:0;border-radius:var(--r);cursor:pointer}
+.tile-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:6px}
+.tile-act{width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.62);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background-color .15s,transform .15s,opacity .15s}
+.tile-act svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tile-act.watchlist.on{background:var(--accent);border-color:var(--accent)}.tile-act.watchlist.on svg{fill:currentColor}
+.tile-act.watched.on{background:var(--ok);border-color:var(--ok)}
+.tile-act:active{transform:scale(.9)}
+@media (hover:hover){.tile-act:not(.on){opacity:0}.tile:hover .tile-act,.tile:focus-within .tile-act{opacity:1}}
+@media (prefers-color-scheme:dark){.tile-act.on{color:#14131c}}
