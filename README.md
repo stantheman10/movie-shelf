@@ -1,4 +1,4 @@
-# Movie Shelf
+# Movie Hub
 
 Astro (server mode) + Render (Docker) + Neon Postgres + Better Auth (Google sign-in) + TMDB.
 Browsing and streaming info need no login. Watchlist / Watched require Google sign-in.

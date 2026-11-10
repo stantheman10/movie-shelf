@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Movie Shelf: browse movies and streaming availability (TMDB); signed-in users keep a Watchlist / Watched library.
+Movie Hub: browse movies and streaming availability (TMDB); signed-in users keep a Watchlist / Watched library.
 
 Stack: Astro 7 (`output: "server"`), Neon Postgres via Drizzle ORM (`neon-http`), Better Auth (Google sign-in), TMDB v3 API. Deployed to Render as a Docker web service (standalone Node server). Vercel is still supported by the default adapter.
 

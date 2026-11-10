@@ -1,4 +1,4 @@
-:root{--bg:#f3f1ee;--surface:#fff;--ink:#1d1b2b;--mute:#6d6a7c;--line:#dedbe6;--accent:#3b3fd8;--ok:#1f8a5b;--r:10px}
+:root{--logo-plate:#000;--logo-text:#fff;--hub-bg:#ff9900;--hub-text:#000;--bg:#f3f1ee;--surface:#fff;--ink:#1d1b2b;--mute:#6d6a7c;--line:#dedbe6;--accent:#3b3fd8;--ok:#1f8a5b;--r:10px}
 @media (prefers-color-scheme:dark){:root{--bg:#14131c;--surface:#1f1d2b;--ink:#eeedf5;--mute:#9a97ad;--line:#322f45;--accent:#8b8eff;--ok:#4cc68f}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif}
@@ -42,3 +42,5 @@ a{color:var(--accent)}
 
 .more{width:100%;margin-top:4px}
 .more:disabled{opacity:.6;cursor:default}
+.logo{display:inline-flex;align-items:center;gap:6px;background:var(--logo-plate);color:var(--logo-text);padding:4px 8px;border-radius:6px;font:700 24px/1.1 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;letter-spacing:-.3px}
+.logo .hub{background:var(--hub-bg);color:var(--hub-text);padding:2px 7px;border-radius:4px}
