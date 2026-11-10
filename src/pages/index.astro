@@ -12,9 +12,12 @@
     <header>
       <div class="bar"><h1 class="logo" aria-label="Movie Hub"><span>Movie</span><span class="hub">Hub</span></h1><div id="auth"></div></div>
       <form class="search" id="f">
-        <input id="q" placeholder="Search a movie or TV show" autocomplete="off" aria-label="Search a movie or TV show" />
+        <input id="q" type="search" placeholder="Search a movie or TV show" autocomplete="off" aria-label="Search a movie or TV show" />
+        <label class="smart" title="Describe what you want, e.g. a slow-burn thriller like Prisoners">
+          <input type="checkbox" id="smart" />
+          <span class="smart-ui"><span class="smart-ico" aria-hidden="true">✨</span> Smart search</span>
+        </label>
         <button class="primary">Search</button>
-        <label class="smart" title="Describe what you want, e.g. a slow-burn thriller like Prisoners"><input type="checkbox" id="smart" /> Smart</label>
       </form>
       <nav>
         <button data-t="search" class="active">Search</button>
