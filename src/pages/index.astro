@@ -13,13 +13,18 @@
       <div class="bar"><h1 class="logo" aria-label="Movie Hub"><span>Movie</span><span class="hub">Hub</span></h1><div id="auth"></div></div>
       <form class="search" id="f">
         <input id="q" type="search" placeholder="Search a movie or TV show" autocomplete="off" aria-label="Search a movie or TV show" />
-        <label class="smart" title="Describe what you want, e.g. a slow-burn thriller like Prisoners">
-          <input type="checkbox" id="smart" />
-          <span class="smart-ui"><span class="smart-ico" aria-hidden="true">✨</span> Smart search</span>
-        </label>
         <button class="primary">Search</button>
+        <label class="smart">
+          <input type="checkbox" id="smart" role="switch" />
+          <span class="smart-text">
+            <span class="smart-title">Smart search <em>Sign in required</em></span>
+            <span class="smart-hint" id="smart-hint">Off: search by title. Turn on to describe what you want, like “a slow-burn thriller like Prisoners”.</span>
+          </span>
+          <span class="switch" aria-hidden="true"></span>
+        </label>
       </form>
       <nav>
+        <span class="nav-ind" aria-hidden="true"></span>
         <button data-t="search" class="active">Search</button>
         <button data-t="watchlist">Watchlist</button>
         <button data-t="watched">Watched</button>
