@@ -14,7 +14,7 @@ const tile = (x, fresh, d) => {
   return `<button type="button" class="tile${fresh ? " fresh" : ""}"${fresh ? ` style="--d:${d}ms"` : ""} data-open="${x.id}" data-type="${x.mediaType || "movie"}" aria-label="${t}">${poster(x.poster ?? x.poster_path)}<span class="tile-title">${t}</span></button>`;
 };
 // Only tiles that are new to the screen animate in (whole view on tab/query change, just the appended ones on "Load more"); re-renders from status toggles stay still.
-let lastSig = "", lastCount = 0;
+let lastSig = "", lastCount = 0, lastMain = "";
 function grid(items, sig) {
   const same = sig === lastSig, start = same ? lastCount : 0;
   lastSig = sig; lastCount = items.length;
@@ -47,15 +47,14 @@ function detailHTML() {
     ? (d.created_by || []).map((c) => c.name).join(", ")
     : (d.credits?.crew || []).filter((c) => c.job == "Director").map((c) => c.name).join(", ");
   const tr = (d.videos?.results || []).find((v) => v.site == "YouTube" && v.type == "Trailer");
-  return `<div class="modal" id="modal"><div class="detail" role="dialog" aria-modal="true" aria-label="${esc(d.title)}"><div class="top">${poster(d.poster_path)}<div><h2>${esc(d.title)}</h2>
+  return `<div class="modal" id="modal"><div class="detail" role="dialog" aria-modal="true" aria-label="${esc(d.title)}" tabindex="-1"><div class="grabber" aria-hidden="true"></div><div class="top">${poster(d.poster_path)}<div><h2>${esc(d.title)}</h2>
 <div class="mute">${esc((d.release_date || "").slice(0, 4))}${d.mediaType == "tv" ? " · TV" + (d.number_of_seasons ? " · " + d.number_of_seasons + (d.number_of_seasons == 1 ? " season" : " seasons") : "") : ""}${d.runtime ? " · " + d.runtime + " min" : ""}${d.vote_average ? " · ★ " + d.vote_average.toFixed(1) : ""}</div>
 <div class="chips">${(d.genres || []).map((g) => `<span class="chip">${esc(g.name)}</span>`).join("")}</div>${btns(d)}</div></div>
 ${d.tagline ? `<p class="mute"><i>${esc(d.tagline)}</i></p>` : ""}<p>${esc(d.overview)}</p>
 ${dir ? `<p><b>${d.mediaType == "tv" ? "Created by" : "Director"}:</b> ${esc(dir)}</p>` : ""}
 ${providersHTML(d.providers)}
 <div class="cast">${cast.map((c) => `<div>${c.profile_path ? `<img src="${IMG}w185${c.profile_path}" alt="">` : `<div class="ph" style="border-radius:50%;width:76px;height:76px"></div>`}<b>${esc(c.name)}</b><br><span class="mute" style="font-size:12px">${esc(c.character)}</span></div>`).join("")}</div>
-${tr ? `<p><a href="https://www.youtube.com/watch?v=${tr.key}" target="_blank" rel="noopener">Watch trailer</a></p>` : ""}
-<button id="close">Close</button></div></div>`;
+${tr ? `<p><a href="https://www.youtube.com/watch?v=${tr.key}" target="_blank" rel="noopener">Watch trailer</a></p>` : ""}</div></div>`;
 }
 export function render() {
   const { tab, msg, detail, results, user, lib } = state;
@@ -74,11 +73,14 @@ export function render() {
     const items = Object.values(lib).filter((x) => x.status == tab);
     h += items.length ? grid(items, tab) : `<p class="mute">Nothing here yet. Search for a movie or show and add it.</p>`;
   }
-  const old = document.querySelector("#modal .detail");
+  // The modal lives in its own container, and the page is only rebuilt when it actually changed, so opening
+  // a title doesn't tear down and re-decode every poster behind it (that stalled the open animation).
+  if (h !== lastMain) { $("#m").innerHTML = h; lastMain = h; }
+  const ov = $("#overlay");
+  const old = ov.querySelector(".detail");
   const keep = old ? old.scrollTop : 0;
-  if (detail) h += detailHTML();
-  $("#m").innerHTML = h;
+  ov.innerHTML = detail ? detailHTML() : "";
   document.body.classList.toggle("modal-open", !!detail);
-  const nu = document.querySelector("#modal .detail");
-  if (nu) { nu.scrollTop = keep; if (!old) { document.getElementById("modal").classList.add("enter"); document.getElementById("close").focus({ preventScroll: true }); } }
+  const nu = ov.querySelector(".detail");
+  if (nu) { nu.scrollTop = keep; if (!old) { document.getElementById("modal").classList.add("enter"); nu.focus({ preventScroll: true }); } }
 }

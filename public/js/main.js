@@ -5,6 +5,7 @@ import { render } from "./views.js";
 import { renderAuth } from "./auth.js";
 import { setStatus } from "./library.js";
 import { runSearch } from "./search.js";
+import { justDragged } from "./sheet.js";
 
 async function openMovie(id, type = "movie") {
   const my = ++state.reqId;
@@ -47,7 +48,7 @@ $("#q").addEventListener("input", () => {
 document.addEventListener("keydown", (e) => { if (e.key == "Escape" && state.detail) { state.detail = null; render(); } });
 document.addEventListener("click", (e) => {
   const t = e.target.closest("nav button"); if (t) { state.tab = t.dataset.t; render(); return; }
-  if (e.target.id == "close" || e.target.id == "modal") { state.detail = null; render(); return; }
+  if (e.target.id == "modal") { if (!justDragged()) { state.detail = null; render(); } return; } // tap outside the sheet
   if (e.target.id == "more") { if (!state.loadingMore) runSearch(state.query, { append: true }); return; }
   const b = e.target.closest("[data-s]");
   if (b) {
